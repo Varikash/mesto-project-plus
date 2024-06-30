@@ -29,7 +29,7 @@ export const getUsers = (req: Request, res: Response) => User.find({})
 export const getUserById = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).orFail();
     if (!user) {
       return res.status(notFoundError.error).send({ message: notFoundError.message });
     }
@@ -51,7 +51,7 @@ export const updateUserInfo = async (req: Request | any, res: Response) => {
       currentUser,
       { name, about },
       { new: true, runValidators: true },
-    );
+    ).orFail();
     if (!updatedUser) {
       return res.status(notFoundError.error).send({ message: notFoundError.message });
     }
@@ -72,7 +72,7 @@ export const updateUserAvatar = async (req: Request | any, res: Response) => {
       currentUser,
       { avatar },
       { new: true, runValidators: true },
-    );
+    ).orFail();
     if (!updatedUser) {
       return res.status(notFoundError.error).send({ message: notFoundError.message });
     }

@@ -33,7 +33,7 @@ export const createCard = async (req: Request | any, res: Response) => {
 export const deleteCard = async (req: Request, res: Response) => {
   const { cardId } = req.params;
   try {
-    const card = await Card.findByIdAndRemove(cardId);
+    const card = await Card.findByIdAndRemove(cardId).orFail();
 
     if (!card) {
       return res.status(notFoundError.error).send({ message: notFoundError.message });
@@ -53,7 +53,7 @@ export const likeCard = async (req: Request | any, res: Response) => {
       req.params.cardId,
       { $addToSet: { likes: req.user._id } },
       { new: true },
-    );
+    ).orFail();
     if (!card) {
       return res.status(notFoundError.error).send({ message: notFoundError.message });
     }
@@ -73,7 +73,7 @@ export const dislikeCard = async (req: Request | any, res: Response) => {
       cardId,
       { $pull: { likes: req.user._id } },
       { new: true },
-    );
+    ).orFail();
 
     if (!card) {
       return res.status(notFoundError.error).send({ message: notFoundError.message });
