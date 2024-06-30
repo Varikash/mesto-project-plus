@@ -7,7 +7,7 @@ const routes = Router();
 
 routes
 
-  // .use('/cards', router)
+  .use('/cards', cardRouter)
   .use('/users', userRouter)
   .use((req: Request, res: Response) => res.status(notFoundError.error).send({ message: notFoundError.message }));
 
