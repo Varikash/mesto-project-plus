@@ -5,12 +5,12 @@ type TWebError = {
   message: string,
 };
 
-export const serverError:TWebError = {
+export const serverError: TWebError = {
   error: 500,
   message: 'Ошибка сервера',
 };
 
-export const badRequestError:TWebError = {
+export const badRequestError: TWebError = {
   error: 400,
   message: 'Некорректные данные',
 };
@@ -18,7 +18,7 @@ export const badRequestError:TWebError = {
 export const STATUS_OK: number = 200;
 export const STATUS_CREATED: number = 201;
 
-export const notFoundError:TWebError = {
+export const notFoundError: TWebError = {
   error: 404,
   message: 'Запрашиваемая страница не найдена',
 };
