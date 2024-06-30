@@ -47,3 +47,46 @@ export const deleteCard = async (req: Request, res: Response) => {
   }
 };
 
+export const likeCard = async (req: Request | any, res: Response) => {
+  try {
+    const card = await Card.findByIdAndUpdate(
+      req.params.cardId,
+      { $addToSet: { likes: req.user._id } },
+      { new: true },
+    );
+    if (!card) {
+      return res.status(notFoundError.error).send({ message: notFoundError.message });
+    }
+    return res.send(card);
+  } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(badRequestError.error).send({ message: badRequestError.message });
+    }
+    return res.status(serverError.error).send({ message: serverError.message });
+  }
+};
+
+export const dislikeCard = async (req: Request | any, res: Response) => {
+  try {
+    const { cardId } = req.params;
+    const card = await Card.findByIdAndUpdate(
+      cardId,
+      { $pull: { likes: req.user._id } },
+      { new: true },
+    );
+
+    if (!card) {
+      return res.status(notFoundError.error).send({ message: notFoundError.message });
+    }
+
+    return res.send(card);
+  } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      return res
+        .status(badRequestError.error)
+        .send({ message: badRequestError.message });
+    }
+
+    return res.status(serverError.error).send({ message: serverError.message });
+  }
+};
