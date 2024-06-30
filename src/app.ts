@@ -9,7 +9,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 
 app.use((req: Request | any, res: Response, next: NextFunction) => {
   req.user = {
-    _id: '6681bbf6abab947c16034420',
+    _id: '6681bc86615c909024a2fd9b',
   };
   next();
 });
