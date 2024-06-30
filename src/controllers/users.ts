@@ -42,3 +42,45 @@ export const getUserById = async (req: Request, res: Response) => {
     return res.status(serverError.error).send({ message: serverError.message });
   }
 };
+
+export const updateUserInfo = async (req: Request | any, res: Response) => {
+  try {
+    const { name, about } = req.body;
+    const currentUser = req.user._id;
+    const updatedUser = await User.findByIdAndUpdate(
+      currentUser,
+      { name, about },
+      { new: true, runValidators: true },
+    );
+    if (!updatedUser) {
+      return res.status(notFoundError.error).send({ message: notFoundError.message });
+    }
+    return res.status(STATUS_OK).send(updatedUser);
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      return res.status(badRequestError.error).send({ message: badRequestError.message });
+    }
+    return res.status(serverError.error).send({ message: serverError.message });
+  }
+};
+
+export const updateUserAvatar = async (req: Request | any, res: Response) => {
+  try {
+    const { avatar } = req.body;
+    const currentUser = req.user._id;
+    const updatedUser = await User.findByIdAndUpdate(
+      currentUser,
+      { avatar },
+      { new: true, runValidators: true },
+    );
+    if (!updatedUser) {
+      return res.status(notFoundError.error).send({ message: notFoundError.message });
+    }
+    return res.status(STATUS_OK).send(updatedUser);
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      return res.status(badRequestError.error).send({ message: badRequestError.message });
+    }
+    return res.status(badRequestError.error).send({ message: badRequestError.message });
+  }
+};
