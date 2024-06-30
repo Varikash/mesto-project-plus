@@ -8,6 +8,7 @@ import {
   badRequestError,
   notFoundError,
 } from '../utilits/utils';
+import updateUserFields from '../utilits/decoratots';
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -47,11 +48,7 @@ export const updateUserInfo = async (req: Request | any, res: Response) => {
   try {
     const { name, about } = req.body;
     const currentUser = req.user._id;
-    const updatedUser = await User.findByIdAndUpdate(
-      currentUser,
-      { name, about },
-      { new: true, runValidators: true },
-    ).orFail();
+    const updatedUser = await updateUserFields(currentUser, { name, about });
     if (!updatedUser) {
       return res.status(notFoundError.error).send({ message: notFoundError.message });
     }
@@ -68,11 +65,7 @@ export const updateUserAvatar = async (req: Request | any, res: Response) => {
   try {
     const { avatar } = req.body;
     const currentUser = req.user._id;
-    const updatedUser = await User.findByIdAndUpdate(
-      currentUser,
-      { avatar },
-      { new: true, runValidators: true },
-    ).orFail();
+    const updatedUser = await updateUserFields(currentUser, { avatar });
     if (!updatedUser) {
       return res.status(notFoundError.error).send({ message: notFoundError.message });
     }
