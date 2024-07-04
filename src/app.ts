@@ -1,19 +1,30 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, {
+  urlencoded,
+} from 'express';
 import mongoose from 'mongoose';
+import { errors } from 'celebrate';
 import routes from './routes/index';
+import { createUser, loginUser } from './controllers/users';
+import { errorLogger, requestLogger } from './middlewares/logger';
+import auth from './middlewares/auth';
+import handleErrors from './errors/handleErrors';
 
 const { PORT = 3000 } = process.env;
 const app = express();
 app.use(express.json());
-mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
+app.use(urlencoded({ extended: true }));
 
-app.use((req: Request | any, res: Response, next: NextFunction) => {
-  req.user = {
-    _id: '6681bc86615c909024a2fd9b',
-  };
-  next();
-});
-app.use('/', routes);
+mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
+app.use(requestLogger);
+app.post('/signin', loginUser);
+app.post('/signup', createUser);
+
+app.use(auth);
+
+app.use(routes);
+app.use(errorLogger);
+app.use(errors());
+app.use(handleErrors);
 
 app.listen(PORT, () => {
   console.log(`Cервер запущен на порту ${PORT}`);

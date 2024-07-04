@@ -1,92 +1,98 @@
 import mongoose from 'mongoose';
-import { Request, Response } from 'express';
-import Card from '../models/card';
 import {
-  STATUS_CREATED,
-  STATUS_OK, serverError,
-  badRequestError,
-  notFoundError,
-} from '../utilits/utils';
+  NextFunction, Request, RequestHandler, Response,
+} from 'express';
+import Card from '../models/card';
+import { errorResponses, STATUS_OK, STATUS_CREATED } from '../utilits/constants';
+import ResourceError from '../errors/ResourceError';
+import ServerError from '../errors/ServerError';
+import InvalidDataError from '../errors/InvalidDataError';
+import AccessError from '../errors/AccessError';
 
-export const getCards = async (req: Request, res: Response) => {
+export const getCards = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const cards = await Card.find({});
+    const cards = await Card.find({}).orFail(new ResourceError(errorResponses.resourceNotFoundError.message));
     return res.status(STATUS_OK).send(cards);
   } catch (error) {
-    return res.status(serverError.error).send({ message: serverError.message });
+    const serverErrorInstance = new ServerError(errorResponses.internalServerError.message);
+    return next(serverErrorInstance);
   }
 };
 
-export const createCard = async (req: Request | any, res: Response) => {
+export const createCard = async (req: Request | any, res: Response, next: NextFunction) => {
   try {
     const ownerId = req.user._id;
     const card = await Card.create({ name: req.body.name, link: req.body.link, owner: ownerId });
     return res.status(STATUS_CREATED).send(card);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
-      return res.status(badRequestError.error).send({ message: badRequestError.message });
+      const validationError = new InvalidDataError(errorResponses.invalidDataError.message, error);
+      return next(validationError);
     }
-    return res.status(serverError.error).send({ message: serverError.error });
+    // eslint-disable-next-line max-len
+    const serverErrorInstance = new ServerError(errorResponses.internalServerError.message, (error instanceof Error) ? error : undefined);
+    return next(serverErrorInstance);
   }
 };
 
-export const deleteCard = async (req: Request, res: Response) => {
+export const deleteCard: RequestHandler = async (req: Request | any, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
+  const userId = req.user._id;
   try {
-    const card = await Card.findByIdAndRemove(cardId).orFail();
+    const card = await Card.findOneAndDelete({ _id: cardId, owner: userId })
+      .orFail(new ResourceError(errorResponses.resourceNotFoundError.message));
 
-    if (!card) {
-      return res.status(notFoundError.error).send({ message: notFoundError.message });
+    if (String(card.owner) !== req.user._id) {
+      return next(new AccessError(errorResponses.accessDeniedError.message));
     }
+
     return res.status(STATUS_OK).send(card);
   } catch (error) {
     if (error instanceof mongoose.Error.CastError) {
-      return res.status(badRequestError.error).send({ message: badRequestError.message });
+      const validationError = new InvalidDataError(errorResponses.invalidDataError.message, error);
+      return next(validationError);
     }
-    return res.status(serverError.error).send({ message: serverError.message });
+    // eslint-disable-next-line max-len
+    const serverErrorInstance = new ServerError(errorResponses.internalServerError.message, error instanceof Error ? error : undefined);
+    return next(serverErrorInstance);
   }
 };
 
-export const likeCard = async (req: Request | any, res: Response) => {
+export const likeCard = async (req: Request | any, res: Response, next: NextFunction) => {
   try {
     const card = await Card.findByIdAndUpdate(
       req.params.cardId,
       { $addToSet: { likes: req.user._id } },
       { new: true },
-    ).orFail();
-    if (!card) {
-      return res.status(notFoundError.error).send({ message: notFoundError.message });
-    }
+    ).orFail(new ResourceError(errorResponses.resourceNotFoundError.message));
     return res.send(card);
   } catch (error) {
     if (error instanceof mongoose.Error.CastError) {
-      return res.status(badRequestError.error).send({ message: badRequestError.message });
+      const validationError = new InvalidDataError(errorResponses.invalidDataError.message, error);
+      return next(validationError);
     }
-    return res.status(serverError.error).send({ message: serverError.message });
+    // eslint-disable-next-line max-len
+    const serverErrorInstance = new ServerError(errorResponses.internalServerError.message, error instanceof Error ? error : undefined);
+    return next(serverErrorInstance);
   }
 };
 
-export const dislikeCard = async (req: Request | any, res: Response) => {
+export const dislikeCard = async (req: Request | any, res: Response, next: NextFunction) => {
   try {
     const { cardId } = req.params;
     const card = await Card.findByIdAndUpdate(
       cardId,
       { $pull: { likes: req.user._id } },
       { new: true },
-    ).orFail();
-
-    if (!card) {
-      return res.status(notFoundError.error).send({ message: notFoundError.message });
-    }
-
+    ).orFail(new ResourceError(errorResponses.resourceNotFoundError.message));
     return res.send(card);
   } catch (error) {
     if (error instanceof mongoose.Error.CastError) {
-      return res
-        .status(badRequestError.error)
-        .send({ message: badRequestError.message });
+      const validationError = new InvalidDataError(errorResponses.invalidDataError.message, error);
+      return next(validationError);
     }
-
-    return res.status(serverError.error).send({ message: serverError.message });
+    // eslint-disable-next-line max-len
+    const serverErrorInstance = new ServerError(errorResponses.internalServerError.message, error instanceof Error ? error : undefined);
+    return next(serverErrorInstance);
   }
 };
