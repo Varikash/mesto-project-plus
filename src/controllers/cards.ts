@@ -39,12 +39,14 @@ export const deleteCard: RequestHandler = async (req: Request | any, res: Respon
   const { cardId } = req.params;
   const userId = req.user._id;
   try {
-    const card = await Card.findOneAndDelete({ _id: cardId, owner: userId })
+    const card = await Card.findOne({ _id: cardId, owner: userId })
       .orFail(new ResourceError(errorResponses.resourceNotFoundError.message));
 
     if (String(card.owner) !== req.user._id) {
       return next(new AccessError(errorResponses.accessDeniedError.message));
     }
+
+    await Card.deleteOne({ _id: cardId });
 
     return res.status(STATUS_OK).send(card);
   } catch (error) {

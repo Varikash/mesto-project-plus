@@ -1,7 +1,10 @@
-import { Request, Response, Router } from 'express';
+import {
+  NextFunction, Request, Response, Router,
+} from 'express';
 import userRouter from './users';
 import cardRouter from './cards';
-import { notFoundError } from '../utilits/utils';
+import ResourceError from '../errors/ResourceError';
+import { errorResponses } from '../utilits/constants';
 
 const routes = Router();
 
@@ -9,6 +12,9 @@ routes
 
   .use('/cards', cardRouter)
   .use('/users', userRouter)
-  .use((req: Request, res: Response) => res.status(notFoundError.error).send({ message: notFoundError.message }));
+  .use((req: Request, res: Response, next: NextFunction) => {
+    const error = new ResourceError(errorResponses.resourceNotFoundError.message);
+    next(error);
+  });
 
 export default routes;

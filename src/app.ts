@@ -8,6 +8,7 @@ import { createUser, loginUser } from './controllers/users';
 import { errorLogger, requestLogger } from './middlewares/logger';
 import auth from './middlewares/auth';
 import handleErrors from './errors/handleErrors';
+import { signInValidation, signUpValidation } from './utilits/validation';
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -16,8 +17,8 @@ app.use(urlencoded({ extended: true }));
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 app.use(requestLogger);
-app.post('/signin', loginUser);
-app.post('/signup', createUser);
+app.post('/signin', signUpValidation, loginUser);
+app.post('/signup', signInValidation, createUser);
 
 app.use(auth);
 
