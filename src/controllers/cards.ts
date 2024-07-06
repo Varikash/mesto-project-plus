@@ -54,9 +54,7 @@ export const deleteCard: RequestHandler = async (req: Request | any, res: Respon
       const validationError = new InvalidDataError(errorResponses.invalidDataError.message, error);
       return next(validationError);
     }
-    // eslint-disable-next-line max-len
-    const serverErrorInstance = new ServerError(errorResponses.internalServerError.message, error instanceof Error ? error : undefined);
-    return next(serverErrorInstance);
+    return next(error);
   }
 };
 
